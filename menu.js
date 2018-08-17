@@ -10,239 +10,88 @@ https://github.com/WordPress/twentysixteen (GPL v.2)
 https://github.com/wpaccessibility/a11ythemepatterns/tree/master/menu-keyboard-arrow-nav (GPL v.2)
 */
 
-(function($) {
-  var menuContainer = $(".menu-container");
-  var menuToggle = menuContainer.find(".menu-button");
-  var siteHeaderMenu = menuContainer.find("#site-header-menu");
-  var siteNavigation = menuContainer.find("#site-navigation");
+var menuContainer = document.querySelector(".menu-container");
+var menuToggle = menuContainer.querySelector(".menu-button");
+var siteHeaderMenu = menuContainer.querySelector("#site-header-menu");
+var siteNavigation = menuContainer.querySelector("#site-navigation");
 
-  // If you are using WordPress, and do not need to localise your script, or if you are not using WordPress, then uncomment the next line
-  // var screenReaderText = {"expand":"Expand child menu","collapse":"Collapse child menu"};
+// If you are using WordPress, and do not need to localise your script, or if you are not using WordPress, then uncomment the next line
+// var screenReaderText = {"expand":"Expand child menu","collapse":"Collapse child menu"};
 
-  var dropdownToggle = $("<button />", {
-    class: "dropdown-toggle",
-    "aria-expanded": false
-  }).append(
-    $("<span />", { class: "screen-readers", text: screenReaderText.expand })
-  );
+var dropdownToggle = document.createElement("button");
+dropdownToggle.setAttribute("aria-expanded", false);
+dropdownToggle.classList.add("dropdown-toggle");
+var dropdownToggleSpan = document.createElement("span");
+dropdownToggleSpan.classList.add("screen-readers");
+var dropdownToggleSpanText = document.createTextNode(screenReaderText.expand);
+dropdownToggleSpan.appendChild(dropdownToggleSpanText);
+dropdownToggle.appendChild(dropdownToggleSpan);
 
-  // Toggles the menu button
-  (function() {
-    if (!menuToggle.length) {
-      return;
-    }
+// Toggles the menu button
+(function() {
+  if (!menuToggle) {
+    return;
+  }
 
-    menuToggle.add(siteNavigation).attr("aria-expanded", "false");
+  menuToggle.setAttribute("aria-expanded", "false");
+  siteNavigation.setAttribute("aria-expanded", "false");
 
-    menuToggle.on("click", function() {
-      $(this)
-        .add(siteHeaderMenu)
-        .toggleClass("toggled-on");
+  menuToggle.addEventListener("click", function() {
+    this.classList.toggle("toggled-on");
+    siteHeaderMenu.classList.toggle("toggled-on");
 
-      // jscs:disable
-      $(this)
-        .add(siteNavigation)
-        .attr(
-          "aria-expanded",
-          $(this)
-            .add(siteNavigation)
-            .attr("aria-expanded") === "false"
-            ? "true"
-            : "false"
-        );
-      // jscs:enable
-    });
-  })();
+    this.setAttribute(
+      "aria-expanded",
+      this.getAttribute("aria-expanded") === "false" ? "true" : "false"
+    );
+    siteNavigation.setAttribute(
+      "aria-expanded",
+      this.getAttribute("aria-expanded") === "false" ? "true" : "false"
+    );
+  });
+})();
 
-  // Adds the dropdown toggle button
-  $(".menu-item-has-children > a").after(dropdownToggle);
+// Adds the dropdown toggle button
+document.querySelectorAll(".menu-item-has-children > a").forEach(function(el) {
+  var clone = dropdownToggle.cloneNode();
+  el.parentNode.insertBefore(clone, el.nextSibling);
+});
 
-  // If a dropdown has no top-level link (it's dummied to act as group, then skip it from tab order)
-  siteNavigation.find('[href="#"]').attr("tabindex", -1);
+// If a dropdown has no top-level link (it's dummied to act as group, then skip it from tab order)
+siteNavigation.querySelectorAll('[href="#"]').forEach(function(el) {
+  el.setAttribute("tabindex", -1);
+});
 
-  // Adds aria attribute
-  siteHeaderMenu.find(".menu-item-has-children").attr("aria-haspopup", "true");
+// Adds aria attribute
+siteHeaderMenu
+  .querySelectorAll(".menu-item-has-children")
+  .forEach(function(el) {
+    el.setAttribute("aria-haspopup", "true");
+  });
 
-  // Toggles the sub-menu when dropdown toggle button clicked
-  siteHeaderMenu.find(".dropdown-toggle").click(function(e) {
-    screenReaderSpan = $(this).find(".screen-readers");
+// Toggles the sub-menu when dropdown toggle button clicked
+siteHeaderMenu.querySelectorAll(".dropdown-toggle").forEach(function(el) {
+  el.addEventListener("click", function(e) {
+    screenReaderSpan = this.querySelectorAll(".screen-readers");
 
     e.preventDefault();
-    $(this).toggleClass("toggled-on");
-    $(this)
-      .nextAll(".sub-menu")
-      .toggleClass("toggled-on");
-
-    // jscs:disable
-    $(this).attr(
+    this.classList.toggle("toggled-on");
+    this.nextElementSibling.classList.toggle("toggled-on");
+    this.setAttribute(
       "aria-expanded",
-      $(this).attr("aria-expanded") === "false" ? "true" : "false"
+      this.getAttribute("aria-expanded") === "false" ? "true" : "false"
     );
-    // jscs:enable
-    screenReaderSpan.text(
-      screenReaderSpan.text() === screenReaderText.expand
+    screenReaderSpan.forEach(function(el) {
+      el.textContent = screenReaderText.expand
         ? screenReaderText.collapse
-        : screenReaderText.expand
-    );
+        : screenReaderText.expand;
+    });
   });
+});
 
-  // Adds a class to sub-menus for styling
-  $(".sub-menu .menu-item-has-children")
-    .parent(".sub-menu")
-    .addClass("has-sub-menu");
-
-  // Keyboard navigation
-  $(".menu-item a, button.dropdown-toggle").on("keydown", function(e) {
-    if ([37, 38, 39, 40].indexOf(e.keyCode) == -1) {
-      return;
-    }
-
-    switch (e.keyCode) {
-      case 37: // left key
-        e.preventDefault();
-        e.stopPropagation();
-
-        if ($(this).hasClass("dropdown-toggle")) {
-          $(this)
-            .prev("a")
-            .focus();
-        } else {
-          if (
-            $(this)
-              .parent()
-              .prev()
-              .children("button.dropdown-toggle").length
-          ) {
-            $(this)
-              .parent()
-              .prev()
-              .children("button.dropdown-toggle")
-              .focus();
-          } else {
-            $(this)
-              .parent()
-              .prev()
-              .children("a")
-              .focus();
-          }
-        }
-
-        if ($(this).is("ul ul ul.sub-menu.toggled-on li:first-child a")) {
-          $(this)
-            .parents("ul.sub-menu.toggled-on li")
-            .children("button.dropdown-toggle")
-            .focus();
-        }
-
-        break;
-
-      case 39: // right key
-        e.preventDefault();
-        e.stopPropagation();
-
-        if ($(this).next("button.dropdown-toggle").length) {
-          $(this)
-            .next("button.dropdown-toggle")
-            .focus();
-        } else {
-          $(this)
-            .parent()
-            .next()
-            .children("a")
-            .focus();
-        }
-
-        if ($(this).is("ul.sub-menu .dropdown-toggle.toggled-on")) {
-          $(this)
-            .parent()
-            .find("ul.sub-menu li:first-child a")
-            .focus();
-        }
-
-        break;
-
-      case 40: // down key
-        e.preventDefault();
-        e.stopPropagation();
-
-        if ($(this).next().length) {
-          $(this)
-            .next()
-            .find("li:first-child a")
-            .first()
-            .focus();
-        } else {
-          $(this)
-            .parent()
-            .next()
-            .children("a")
-            .focus();
-        }
-
-        if (
-          $(this).is("ul.sub-menu a") &&
-          $(this).next("button.dropdown-toggle").length
-        ) {
-          $(this)
-            .parent()
-            .next()
-            .children("a")
-            .focus();
-        }
-
-        if (
-          $(this).is("ul.sub-menu .dropdown-toggle") &&
-          $(this)
-            .parent()
-            .next()
-            .children(".dropdown-toggle").length
-        ) {
-          $(this)
-            .parent()
-            .next()
-            .children(".dropdown-toggle")
-            .focus();
-        }
-
-        break;
-
-      case 38: // up key
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (
-          $(this)
-            .parent()
-            .prev().length
-        ) {
-          $(this)
-            .parent()
-            .prev()
-            .children("a")
-            .focus();
-        } else {
-          $(this)
-            .parents("ul")
-            .first()
-            .prev(".dropdown-toggle.toggled-on")
-            .focus();
-        }
-
-        if (
-          $(this).is("ul.sub-menu .dropdown-toggle") &&
-          $(this)
-            .parent()
-            .prev()
-            .children(".dropdown-toggle").length
-        ) {
-          $(this)
-            .parent()
-            .prev()
-            .children(".dropdown-toggle")
-            .focus();
-        }
-
-        break;
-    }
-  });
-})(jQuery);
+// Adds a class to sub-menus for styling
+var submenus = document.querySelectorAll(".sub-menu .menu-item-has-children");
+submenus.forEach(function(el) {
+  // console.log(el.parentNode);
+  el.parentNode.classList.add("has-sub-menu");
+});

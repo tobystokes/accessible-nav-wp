@@ -48,6 +48,9 @@ https://github.com/wpaccessibility/a11ythemepatterns/tree/master/menu-keyboard-a
     // Adds the dropdown toggle button  
     $('.menu-item-has-children > a').after(dropdownToggle);      
 
+    // If a dropdown has no top-level link (it's dummied to act as group, then skip it from tab order)
+    siteNavigation.find('[href="#"]').attr("tabindex", -1);
+
     // Adds aria attribute
     siteHeaderMenu.find( '.menu-item-has-children' ).attr( 'aria-haspopup', 'true' );
 

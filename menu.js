@@ -18,14 +18,17 @@ var siteNavigation = menuContainer.querySelector("#site-navigation");
 // If you are using WordPress, and do not need to localise your script, or if you are not using WordPress, then uncomment the next line
 // var screenReaderText = {"expand":"Expand child menu","collapse":"Collapse child menu"};
 
-var dropdownToggle = document.createElement("button");
-dropdownToggle.setAttribute("aria-expanded", false);
-dropdownToggle.classList.add("dropdown-toggle");
-var dropdownToggleSpan = document.createElement("span");
-dropdownToggleSpan.classList.add("screen-readers");
-var dropdownToggleSpanText = document.createTextNode(screenReaderText.expand);
-dropdownToggleSpan.appendChild(dropdownToggleSpanText);
-dropdownToggle.appendChild(dropdownToggleSpan);
+function createToggleButton() {
+  var btn = document.createElement("button");
+  btn.setAttribute("aria-expanded", false);
+  btn.classList.add("dropdown-toggle");
+  var btnSpan = document.createElement("span");
+  btnSpan.classList.add("screen-readers");
+  var btnSpanText = document.createTextNode(screenReaderText.expand);
+  btnSpan.appendChild(btnSpanText);
+  btn.appendChild(btnSpan);
+  return btn;
+}
 
 // Toggles the menu button
 (function() {
@@ -53,8 +56,7 @@ dropdownToggle.appendChild(dropdownToggleSpan);
 
 // Adds the dropdown toggle button
 document.querySelectorAll(".menu-item-has-children > a").forEach(function(el) {
-  var clone = dropdownToggle.cloneNode();
-  el.parentNode.insertBefore(clone, el.nextSibling);
+  el.parentNode.insertBefore(createToggleButton(), el.nextSibling);
 });
 
 // If a dropdown has no top-level link (it's dummied to act as group, then skip it from tab order)
